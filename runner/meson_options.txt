@@ -1,0 +1,1 @@
+option('version', type : 'integer', value : 0, description : 'Program version')
