@@ -38,6 +38,7 @@ struct User
     char* (*fullname)(void);
     int (*base_version)(void);
     int* base_global_value;
+    void (*free)(void*);
 };
 
 void * load_symbol(void * handle, const char * symbol)
@@ -65,12 +66,15 @@ int populate_user(const char * lib_path, struct User * user)
     user->fullname = load_symbol(user->handle, "fullname");
     user->base_version = load_symbol(user->handle, "base_version");
     user->base_global_value = load_symbol(user->handle, "base_global_value");
+    user->free = load_symbol(user->handle, "free");
+
 
     return !(user->version == NULL ||
              user->global_value == NULL ||
              user->fullname == NULL ||
              user->base_version == NULL ||
-             user->base_global_value == NULL);
+             user->base_global_value == NULL ||
+             user->free == NULL);
 }
 
 int main(int argc, char ** argv)
@@ -100,7 +104,7 @@ int main(int argc, char ** argv)
     {
         char * value = users[i].fullname();
         printf("user %d fullname: %s\n", i, value);
-        free(value);
+        users[i].free(value);
     }
 
     printf("Changing global values.\n");
@@ -120,7 +124,7 @@ int main(int argc, char ** argv)
     {
         char * value = users[i].fullname();
         printf("user %d fullname: %s\n", i, value);
-        free(value);
+        users[i].free(value);
     }
 
     printf("Removing user libs from memory.\n");
